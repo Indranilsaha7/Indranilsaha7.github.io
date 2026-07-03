@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hi</title>
+</head>
+<body>
+
+    <input type="text" class="name" placeholder="Enter your name">
+    <input type="submit" class="submit-btn" value="Submit">
+    <h1></h1>
+
+    <script>
+        // 1. Select the HTML elements using correct method names
+        const nameInput = document.querySelector(".name");
+        const submitBtn = document.querySelector(".submit-btn");
+        const heading = document.querySelector("h1");
+
+        // 2. Add an event listener to handle the click action
+        submitBtn.addEventListener("click", function() {
+            // 3. Update the heading text with the input value
+            heading.textContent = nameInput.value;
+        });
+    </script>
+
+</body>
+</html>
