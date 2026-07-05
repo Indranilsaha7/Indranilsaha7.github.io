@@ -1,1 +1,0 @@
-site = https://barodashop1.web.app
