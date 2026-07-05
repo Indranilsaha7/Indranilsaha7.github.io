@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Supplier | Shop Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="template/logo/favicon.ico">
+    <!-- Component Styles -->
+    <link rel="stylesheet" href="template/style/sidebar/sidebar.css">
+    <link rel="stylesheet" href="template/style/topbar/topbar.css">
+    <link rel="stylesheet" href="template/style/footer/footer.css">
+    <!-- Lottie Animation library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+    <!-- Pre-load theme to prevent flash of white background on reload -->
+    <script>
+        const savedTheme = localStorage.getItem('shop-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --input-bg: #f1f5f9;
+            --input-border: #cbd5e1;
+        }
+
+        [data-theme="dark"] {
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color, #f8fafc);
+            color: var(--text-color, #1e293b);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            margin-left: 260px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--sidebar-border, #e2e8f0);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-color, #0f172a);
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+            padding: 0.9rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--input-bg);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                flex-direction: column-reverse;
+            }
+            .button-group button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    <main class="main-content">
+        <div id="topbar-placeholder"></div>
+
+        <div class="page-header">
+            <h2>Add New Supplier</h2>
+        </div>
+
+        <div class="card">
+            <form id="add-supplier-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="supplier-name">Supplier Name <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="supplier-name" name="supplier-name" placeholder="Enter supplier's company name" required aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-person">Contact Person</label>
+                        <input type="text" id="contact-person" name="contact-person" placeholder="Enter contact person's name">
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier-email">Email Address</label>
+                        <input type="email" id="supplier-email" name="supplier-email" placeholder="Enter supplier's email">
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier-phone">Phone Number</label>
+                        <input type="tel" id="supplier-phone" name="supplier-phone" placeholder="Enter supplier's phone number">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="supplier-address">Address</label>
+                    <textarea id="supplier-address" name="supplier-address" rows="3" placeholder="Enter supplier's full address"></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="button" id="cancel-btn" class="btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+                    <button type="submit" id="save-btn" class="btn-primary"><i class="fas fa-save"></i> Save Supplier</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="footer-placeholder"></div>
+    </main>
+
+    <!-- UI Scripts -->
+    <script src="template/script/sidebar/sidebar.js"></script>
+    <script src="template/script/topbar/topbar.js"></script>
+    <script src="template/script/footer/footer.js"></script>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { app } from "./firebase-config.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const db = getFirestore(app, "default");
+        let currentShopId = null;
+
+        window.addEventListener("load", () => {
+            const isAuthenticated = sessionStorage.getItem('shopAuthenticated');
+            currentShopId = sessionStorage.getItem('shopId');
+
+            if (isAuthenticated !== 'true' || !currentShopId) {
+                window.location.replace('login.html');
+            }
+        });
+
+        const form = document.getElementById('add-supplier-form');
+        const saveBtn = document.getElementById('save-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        cancelBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to cancel? Unsaved changes will be lost.')) {
+                form.reset();
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentShopId) return alert("Authentication error. Please sign in again.");
+
+            const originalBtnText = saveBtn.innerHTML;
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                await addDoc(collection(db, "suppliers"), {
+                    shopId: currentShopId,
+                    name: document.getElementById('supplier-name').value.trim(),
+                    contactPerson: document.getElementById('contact-person').value.trim(),
+                    email: document.getElementById('supplier-email').value.trim(),
+                    phone: document.getElementById('supplier-phone').value.trim(),
+                    address: document.getElementById('supplier-address').value.trim(),
+                    createdAt: serverTimestamp()
+                });
+                
+                alert("Supplier added successfully!");
+                form.reset();
+            } catch (error) {
+                console.error("Error adding supplier:", error);
+                alert("Failed to add supplier. Please try again.");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
+            }
+        });
+    </script>
+</body>
+
+</html>
