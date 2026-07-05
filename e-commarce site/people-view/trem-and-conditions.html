@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions | Baroda Shop1</title>
+    <link rel="icon" type="image/png" href="logo/favicon.ico">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Link to Component Styles (for topbar and footer) -->
+    <link rel="stylesheet" href="style/topbar/topbar.css">
+    <link rel="stylesheet" href="style/footer/footer.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .page-header {
+            text-align: center;
+            padding: 4rem 0;
+            margin-top: 80px; /* Offset for fixed topbar */
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.1), #0f172a 90%);
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .page-header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto 4rem auto;
+            padding: 2.5rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .content-section h2 {
+            color: #818cf8;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .content-section p {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .content-section ul {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .container {
+                margin: 0 1rem 3rem 1rem;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Placeholder for the dynamic topbar -->
+    <div id="topbar-placeholder"></div>
+
+    <main>
+        <section class="page-header">
+            <h1>Terms and Conditions</h1>
+            <p>Last updated: May 21, 2026</p>
+        </section>
+
+        <section class="container">
+            <div class="content-section">
+                <h2>1. Introduction</h2>
+                <p>Welcome to Baroda Shop1. These Terms and Conditions govern your use of our website and the services provided by Baroda Shop1. By accessing or using our platform, you agree to be bound by these terms.</p>
+            </div>
+
+            <div class="content-section">
+                <h2>2. User Accounts</h2>
+                <p>When you create an account with us, you must provide accurate, complete, and current information at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our service.</p>
+                <ul>
+                    <li>You are responsible for safeguarding the password that you use to access the service.</li>
+                    <li>You agree not to disclose your password to any third party.</li>
+                    <li>You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.</li>
+                    <li>We are provide our fully customized encription to your password to save your password and the informations as well . </li>
+                </ul>
+            </div>
+
+            <div class="content-section">
+                <h2>3. Purchases and Payment</h2>
+                <p>We make every effort to display as accurately as possible the colors, features, specifications, and details of the products available on the site. However, we do not guarantee that the colors, features, specifications, and details of the products will be accurate, complete, reliable, current, or free of other errors.</p>
+                <p>All products are subject to availability, and we cannot guarantee that items will be in stock.</p>
+            </div>
+
+            <div class="content-section">
+                <h2>4. Shipping and Delivery</h2>
+                <p>Baroda Shop1 strives to deliver your products in a timely and secure manner. Shipping costs and delivery times will vary depending on your location and the shipping method selected during checkout.</p>
+            </div>
+
+            <div class="content-section">
+                <h2>5. Returns and Refunds</h2>
+                <p>We accept returns for items within 15 days of purchase, provided the items are in their original condition and packaging. To initiate a return, please contact our support team. Refunds will be processed to the original method of payment.</p>
+            </div>
+
+            <div class="content-section">
+                <h2>6. Changes to Terms</h2>
+                <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. What constitutes a material change will be determined at our sole discretion. By continuing to access or use our service after those revisions become effective, you agree to be bound by the revised terms.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Placeholder for the dynamic footer -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="script/topbar/topbar.js"></script>
+    <script src="script/footer/footer.js"></script>
+    <script src="script/custom-diloague.js"></script>
+</body>
+
+</html>
