@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Management Portal | Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="template/logo/favicon.ico">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background: #1e293b;
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0f172a;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #818cf8;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px #4f46e5;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+            /* Hidden by default */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Shop Portal</h1>
+            <p>Sign in to manage your products</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="login-form">
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="shopuser@baroda.com" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password / Temp Code</label>
+                <input type="password" id="password" placeholder="••••••••••••••" required>
+            </div>
+            <button type="submit" class="btn-submit" id="login-btn">Sign In</button>
+        </form>
+    </div>
+
+    <script type="module">
+        import { app } from './firebase-config.js';
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+        const db = getFirestore(app, "default");
+
+        // Generate a temporary 6-digit daily code (mathematically changes at midnight)
+        function getDailyTempCode(shopId) {
+            const dateStr = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+            const str = shopId + dateStr;
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = (hash << 5) - hash + str.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString().substring(0, 6).padStart(6, '0');
+        }
+
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const loginBtn = document.getElementById('login-btn');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear previous errors and set loading state
+            errorMessage.style.display = 'none';
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                // Query Firestore for the shop by email
+                const shopsRef = collection(db, "shops");
+                const q = query(shopsRef, where("email", "==", email));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    throw new Error("auth/user-not-found");
+                }
+
+                let authenticated = false;
+                let shopData = null;
+                let shopId = null;
+
+                querySnapshot.forEach((doc) => {
+                    const shop = doc.data();
+                    const tempCode = getDailyTempCode(doc.id);
+                    
+                    // Check if the input password matches either the fixed password or the daily temp code
+                    if (shop.password === password || password === tempCode) {
+                        authenticated = true;
+                        shopData = shop;
+                        shopId = doc.id;
+                    }
+                });
+
+                if (authenticated) {
+                    // Update the Daily Logins Count for the Admin Chart
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    let dailyLogins = shopData.dailyLogins || [0, 0, 0, 0, 0, 0, 0];
+                    let lastLoginDate = shopData.lastLoginDate || todayStr;
+                    
+                    const daysDiff = Math.floor((new Date(todayStr).getTime() - new Date(lastLoginDate).getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    if (daysDiff > 0) {
+                        for (let i = 0; i < Math.min(daysDiff, 7); i++) {
+                            dailyLogins.shift();
+                            dailyLogins.push(0);
+                        }
+                    }
+                    dailyLogins[6] += 1; // Increment today's count
+
+                    await updateDoc(doc(db, "shops", shopId), {
+                        dailyLogins: dailyLogins,
+                        lastLoginDate: todayStr
+                    });
+
+                    // Success! Save session and redirect to the main shop management dashboard
+                    sessionStorage.setItem('shopAuthenticated', 'true');
+                    sessionStorage.setItem('shopId', shopId);
+                    sessionStorage.setItem('shopName', shopData.shopName || 'Shop Owner');
+                    
+                    loginBtn.innerHTML = '<i class="fas fa-check"></i> Success!';
+                    window.location.replace('dashboard.html');
+                } else {
+                    throw new Error("auth/wrong-password");
+                }
+            } catch (error) {
+                let userFriendlyMessage = 'Failed to sign in. Please check your credentials.';
+
+                if (error.message === 'auth/user-not-found' || error.message === 'auth/wrong-password') {
+                    userFriendlyMessage = 'Invalid email or password/temp code.';
+                }
+
+                errorMessage.innerText = userFriendlyMessage;
+                errorMessage.style.display = 'block';
+
+                // Revert button state
+                loginBtn.disabled = false;
+                loginBtn.innerText = 'Sign In';
+            }
+        });
+    </script>
+</body>
+
+</html>
