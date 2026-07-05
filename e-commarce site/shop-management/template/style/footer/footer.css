@@ -1,0 +1,28 @@
+.shop-footer {
+    text-align: center;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.65); /* Semi-transparent background */
+    backdrop-filter: blur(12px); /* Glass blur effect */
+    -webkit-backdrop-filter: blur(12px); /* For Safari support */
+    color: var(--icon-color, #64748b);
+    font-size: 0.85rem;
+    position: fixed;
+    bottom: 10px; /* Lifted slightly to show the floating effect */
+    left: 270px; /* Spaced slightly away from the sidebar */
+    right: 10px; /* Spaced slightly away from the right edge */
+    z-index: 900;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Soft light border */
+    border-radius: 16px; /* Smooth rounded edges */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Soft shadow for depth */
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark mode adjustments to maintain the glass effect */
+[data-theme="dark"] .shop-footer {
+    background: rgba(30, 41, 59, 0.7); /* Dark semi-transparent background */
+    border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle dark mode border */
+}
+
+.shop-footer p {
+    margin: 5px 0;
+}
