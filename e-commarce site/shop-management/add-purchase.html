@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Purchase | Shop Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="template/logo/favicon.ico">
+    <!-- Component Styles -->
+    <link rel="stylesheet" href="template/style/sidebar/sidebar.css">
+    <link rel="stylesheet" href="template/style/topbar/topbar.css">
+    <link rel="stylesheet" href="template/style/footer/footer.css">
+
+    <script>
+        const savedTheme = localStorage.getItem('shop-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --input-bg: #f1f5f9;
+            --input-border: #cbd5e1;
+            --table-border: #e2e8f0;
+            --table-hover: #f1f5f9;
+        }
+
+        [data-theme="dark"] {
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --table-border: rgba(255, 255, 255, 0.1);
+            --table-hover: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color, #f8fafc);
+            color: var(--text-color, #1e293b);
+            display: flex;
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--sidebar-border, #e2e8f0);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-color, #0f172a);
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+        }
+
+        /* Table for purchase items */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--table-border);
+            text-align: left;
+        }
+
+        th {
+            font-weight: 500;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .total-summary {
+            margin-top: 1.5rem;
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-placeholder"></div>
+    <main class="main-content">
+        <div id="topbar-placeholder"></div>
+
+        <div class="page-header">
+            <h2>Add New Purchase</h2>
+        </div>
+
+        <form id="add-purchase-form">
+            <div class="card">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="purchase-date">Purchase Date *</label>
+                        <input type="date" id="purchase-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier-select">Select Supplier *</label>
+                        <select id="supplier-select" required>
+                            <option value="">Loading suppliers...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Add Products to Purchase</h4>
+                <div class="form-grid" style="align-items: flex-end;">
+                    <div class="form-group">
+                        <label for="product-search">Search Product (by Name/Barcode)</label>
+                        <input type="text" id="product-search" placeholder="Start typing to find a product...">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="add-product-btn" class="btn-primary" style="width: 100%;">Add Product</button>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="purchase-items-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Buy Price</th>
+                                <th>Subtotal</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="total-summary">
+                    Total: <span id="total-purchase-amount">$0.00</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="form-group">
+                    <label for="purchase-notes">Notes (Optional)</label>
+                    <textarea id="purchase-notes" rows="3" placeholder="Add any notes for this purchase..."></textarea>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button type="submit" id="save-btn" class="btn-primary"><i class="fas fa-save"></i> Save Purchase</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="footer-placeholder"></div>
+    </main>
+
+    <!-- UI Scripts -->
+    <script src="template/script/sidebar/sidebar.js"></script>
+    <script src="template/script/topbar/topbar.js"></script>
+    <script src="template/script/footer/footer.js"></script>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        // Firebase logic will go here
+        import { app, auth } from './firebase-config.js';
+        import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+        const db = getFirestore(app , "default");
+        let currentUserId = null;
+        const supplierSelect = document.getElementById('supplier-select');
+        const tbody = document.querySelector('#purchase-items-table tbody');
+        const totalSpan = document.getElementById('total-purchase-amount');
+
+        // Auto-fill today's date
+        document.getElementById('purchase-date').valueAsDate = new Date();
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                await loadSuppliers();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        async function loadSuppliers() {
+            try {
+                const q = query(collection(db, "suppliers"), where("shopId", "==", currentUserId));
+                const querySnapshot = await getDocs(q);
+                supplierSelect.innerHTML = '<option value="">Select a supplier</option>';
+                querySnapshot.forEach((doc) => {
+                    supplierSelect.innerHTML += `<option value="${doc.id}">${doc.data().name}</option>`;
+                });
+                if (querySnapshot.empty) {
+                    supplierSelect.innerHTML = '<option value="">No suppliers found. Please add one first.</option>';
+                }
+            } catch (error) {
+                console.error("Error loading suppliers:", error);
+                supplierSelect.innerHTML = '<option value="">Error loading suppliers</option>';
+            }
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('.subtotal-input').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            totalSpan.textContent = `$${total.toFixed(2)}`;
+        }
+
+        document.getElementById('add-product-btn').addEventListener('click', () => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="product-name" placeholder="Product name" required style="width:100%; padding:0.5rem;"></td>
+                <td><input type="number" class="qty" min="1" value="1" required style="width:80px; padding:0.5rem;"></td>
+                <td><input type="number" class="price" min="0" step="0.01" placeholder="0.00" required style="width:100px; padding:0.5rem;"></td>
+                <td>$<input type="text" class="subtotal-input" value="0.00" readonly style="width:80px; border:none; background:transparent; font-weight:bold; pointer-events:none;"></td>
+                <td><button type="button" class="remove-btn" style="color:#ef4444; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+            `;
+            
+            const qtyInput = tr.querySelector('.qty');
+            const priceInput = tr.querySelector('.price');
+            const subtotalInput = tr.querySelector('.subtotal-input');
+
+            const updateSub = () => {
+                subtotalInput.value = ((parseFloat(qtyInput.value)||0) * (parseFloat(priceInput.value)||0)).toFixed(2);
+                calculateTotal();
+            };
+
+            qtyInput.addEventListener('input', updateSub);
+            priceInput.addEventListener('input', updateSub);
+            tr.querySelector('.remove-btn').addEventListener('click', () => {
+                tr.remove();
+                calculateTotal();
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('add-purchase-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUserId) return alert("User not authenticated.");
+
+            const rows = tbody.querySelectorAll('tr');
+            if (rows.length === 0) return alert("Please add at least one product.");
+
+            const items = [];
+            rows.forEach(row => {
+                items.push({
+                    name: row.querySelector('.product-name').value,
+                    quantity: parseFloat(row.querySelector('.qty').value),
+                    price: parseFloat(row.querySelector('.price').value),
+                    subtotal: parseFloat(row.querySelector('.subtotal-input').value)
+                });
+            });
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                await addDoc(collection(db, "purchases"), {
+                    shopId: currentUserId,
+                    date: document.getElementById('purchase-date').value,
+                    supplierId: supplierSelect.value,
+                    supplierName: supplierSelect.options[supplierSelect.selectedIndex].text,
+                    items: items,
+                    totalAmount: parseFloat(totalSpan.textContent.replace('$', '')),
+                    notes: document.getElementById('purchase-notes').value,
+                    createdAt: serverTimestamp()
+                });
+                alert("Purchase added successfully!");
+                e.target.reset();
+                tbody.innerHTML = '';
+                calculateTotal();
+                document.getElementById('purchase-date').valueAsDate = new Date();
+            } catch (error) {
+                console.error("Error adding purchase:", error);
+                alert("Failed to add purchase.");
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Purchase';
+            }
+        });
+    </script>
+</body>
+
+</html>
