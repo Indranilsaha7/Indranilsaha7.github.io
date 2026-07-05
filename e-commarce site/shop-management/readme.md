@@ -1,0 +1,1 @@
+site = shopusermanagementportal.web.app
