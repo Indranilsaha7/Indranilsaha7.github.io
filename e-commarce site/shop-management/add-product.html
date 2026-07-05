@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product | Shop Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="template/logo/favicon.ico">
+    <!-- Component Styles -->
+    <link rel="stylesheet" href="template/style/sidebar/sidebar.css">
+    <link rel="stylesheet" href="template/style/topbar/topbar.css">
+    <link rel="stylesheet" href="template/style/footer/footer.css">
+    <!-- Include IndexedDB helper library for offline storage -->
+    <script src="https://cdn.jsdelivr.net/npm/idb@7/build/umd.js"></script>
+    <!-- Lottie Animation library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+    <!-- Pre-load theme to prevent flash of white background on reload -->
+    <script>
+        const savedTheme = localStorage.getItem('shop-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
+    <style>
+        :root {
+            --card-bg: #ffffff;
+            --input-bg: #f1f5f9;
+            --input-border: #cbd5e1;
+        }
+
+        [data-theme="dark"] {
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --input-bg: rgba(15, 23, 42, 0.6);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color, #f8fafc);
+            color: var(--text-color, #1e293b);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            margin-left: 260px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--sidebar-border, #e2e8f0);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-color, #0f172a);
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 0.9rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Loaders */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color, #f8fafc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Custom File Upload */
+        .custom-file-upload {
+            border: 2px dashed var(--input-border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .custom-file-upload:hover {
+            border-color: #818cf8;
+            background: rgba(129, 140, 248, 0.05);
+        }
+
+        .custom-file-upload label {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .custom-file-upload i {
+            font-size: 2rem;
+            color: #818cf8;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid #10b981;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader-overlay">
+        <div style="font-size: 2rem; color: #818cf8;"><i class="fas fa-spinner fa-spin"></i></div>
+    </div>
+
+    <div id="toast-container"></div>
+    
+    <!-- Animation Overlay -->
+    <div id="animation-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; justify-content: center; align-items: center; flex-direction: column;">
+        <div style="background: var(--card-bg); padding: 30px; border-radius: 16px; text-align: center; display: flex; flex-direction: column; align-items: center; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div id="lottie-container" style="width: 150px; height: 150px;"></div>
+            <h3 id="animation-message" style="margin-top: 20px; color: var(--text-color); font-weight: 500;"></h3>
+            <button id="animation-close-btn" class="btn-primary" style="margin-top: 20px; display: none;">Close</button>
+        </div>
+    </div>
+
+    <!-- Image Selector Modal -->
+    <div id="image-selector-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: var(--card-bg); padding: 2rem; border-radius: 16px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <button type="button" id="close-image-selector" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-color);">&times;</button>
+            <h3 style="margin-top: 0; color: var(--text-color);">Select Existing Image</h3>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Choose images that were already uploaded by your shop.</p>
+            <div id="existing-images-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">
+                <!-- Images will be loaded here -->
+            </div>
+            <div style="margin-top: 20px; text-align: right; border-top: 1px solid var(--sidebar-border); padding-top: 20px;">
+                <button type="button" id="confirm-image-selection" class="btn-primary">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar-placeholder"></div>
+    <main class="main-content">
+        <div id="topbar-placeholder"></div>
+
+        <div class="page-header">
+            <h2>Add New Product</h2>
+        </div>
+
+        <div class="card">
+            <form id="add-product-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="product-name">Product Name *</label>
+                        <input type="text" id="product-name" placeholder="Enter product name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-brand">Product Brand *</label>
+                        <input type="text" id="product-brand" placeholder="Enter brand name" required>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 0.5rem; background: var(--input-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--input-border);">
+                        <label style="display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 500;">
+                            <input type="checkbox" id="has-multiple-images" style="width: auto; margin: 0;"> Has Multiple Images?
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 500;">
+                            <input type="checkbox" id="has-colors" style="width: auto; margin: 0;"> Has Multiple Colors?
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 500;">
+                            <input type="checkbox" id="has-sizes" style="width: auto; margin: 0;"> Has Multiple Sizes?
+                        </label>
+                    </div>
+                    <div class="form-group" id="colors-group" style="display: none;">
+                        <label for="product-colors">Available Colors (Comma separated) *</label>
+                        <input type="text" id="product-colors" placeholder="e.g. Red, Blue, Green">
+                    </div>
+                    <div class="form-group" id="sizes-group" style="display: none;">
+                        <label for="product-sizes">Available Sizes (Comma separated) *</label>
+                        <input type="text" id="product-sizes" placeholder="e.g. S, M, L, XL">
+                    </div>
+                    <div class="form-group" id="single-image-group">
+                        <label>Product Image * <button type="button" class="btn-select-existing" data-target="single" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; margin-left: 10px; cursor: pointer; border-radius: 4px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);"><i class="fas fa-images"></i> Gallery</button></label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="product-image" accept="image/*" required style="display: none;">
+                            <label for="product-image">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span id="file-name">Click to upload image (Max 1GB)</span>
+                            </label>
+                            <img id="image-preview" style="display: none; max-width: 100%; max-height: 200px; margin-top: 15px; border-radius: 8px; object-fit: contain;">
+                        </div>
+                    </div>
+                    <div class="form-group" id="multiple-images-group" style="display: none; grid-column: 1 / -1;">
+                        <label>Product Images (Select multiple) * <button type="button" class="btn-select-existing" data-target="multiple" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; margin-left: 10px; cursor: pointer; border-radius: 4px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-color);"><i class="fas fa-images"></i> Gallery</button></label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="product-images" accept="image/*" multiple style="display: none;">
+                            <label for="product-images">
+                                <i class="fas fa-images"></i>
+                                <span id="files-name">Click to upload multiple images</span>
+                            </label>
+                            <div id="images-preview" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center;"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-rating">Product Rating (0-5) *</label>
+                        <input type="number" id="product-rating" placeholder="0.0" step="0.1" min="0" max="5"
+                            value="0.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-category">Product Category *</label>
+                        <select id="product-category" required>
+                            <option value="">Select a Category</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="home">Home & Decor</option>
+                            <option value="sports">Sports</option>
+                            <option value="beauty">Beauty & Personal Care</option>
+                            <option value="toys">Toys & Games</option>
+                            <option value="automotive">Automotive</option>
+                            <option value="grocery">Grocery & Food</option>
+                            <option value="health">Health & Wellness</option>
+                            <option value="books">Books & Stationery</option>
+                            <option value="other">Other (Custom)</option>
+                        </select>
+                        <input type="text" id="custom-category" placeholder="Enter custom category"
+                            style="display: none; margin-top: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-barcode">Product Barcode *</label>
+                        <input type="text" id="product-barcode" placeholder="Scan or enter barcode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-tag">Product Searching Tag *</label>
+                        <input type="text" id="product-tag" placeholder="e.g. smartphone, 5G, apple" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-alert">Product Alert Stock *</label>
+                        <input type="number" id="product-alert" placeholder="Minimum stock alert level" min="0"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label for="buy-price">Buy Price *</label>
+                        <input type="number" id="buy-price" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sell-price">Sell Price *</label>
+                        <input type="number" id="sell-price" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label for="product-desc" style="margin-bottom: 0;">Product Description *</label>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" id="undo-ai-btn"
+                                style="display: none; font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s;"><i
+                                    class="fas fa-undo"></i> Undo</button>
+                            <button type="button" id="ai-vision-btn"
+                                style="font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(16, 185, 129, 0.1); color: #10b981; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s;"><i
+                                    class="fas fa-camera"></i> AI Vision Fill</button>
+                            <button type="button" id="ai-enhance-btn"
+                                style="font-size: 0.8rem; padding: 0.4rem 0.8rem; background: rgba(129, 140, 248, 0.1); color: #818cf8; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s;"><i
+                                    class="fas fa-magic"></i> AI Enhance</button>
+                        </div>
+                    </div>
+                    <textarea id="product-desc" rows="4"
+                        placeholder="Describe the product details and specifications..." required></textarea>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <button type="submit" id="save-btn" class="btn-primary"><i class="fas fa-save"></i> Save
+                        Product</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="footer-placeholder"></div>
+    </main>
+
+    <!-- UI Scripts -->
+    <script src="template/script/sidebar/sidebar.js"></script>
+    <script src="template/script/topbar/topbar.js"></script>
+    <script src="template/script/footer/footer.js"></script>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { app } from "./firebase-config.js";
+        import { getFirestore, collection, addDoc, setDoc, doc, updateDoc, increment, getDoc, query, where, getDocs, collectionGroup, limit } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-functions.js";
+
+        const db = getFirestore(app, "default");
+        const functions = getFunctions(app);
+        const loader = document.getElementById('loader-overlay');
+        const form = document.getElementById('add-product-form');
+        const saveBtn = document.getElementById('save-btn');
+        const pageHeader = document.querySelector('.page-header h2');
+
+        let currentShopId = null;
+        let isEditMode = false;
+        let editProductId = null;
+        let activeUploads = 0;
+        let existingImageUrl = null;
+        let existingImageUrls = [];
+        let imageSelectionTarget = 'single';
+        let selectedGalleryImages = [];
+
+        window.addEventListener("load", async () => {
+            const isAuthenticated = sessionStorage.getItem('shopAuthenticated');
+            currentShopId = sessionStorage.getItem('shopId');
+
+            if (isAuthenticated !== 'true' || !currentShopId) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            editProductId = urlParams.get('edit');
+
+            if (editProductId) {
+                isEditMode = true;
+                await loadProductForEdit(editProductId);
+            }
+
+            loader.style.display = 'none';
+        });
+
+        // Warn user if leaving page while uploading
+        window.addEventListener('beforeunload', (e) => {
+            if (activeUploads > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Custom Category Toggle Logic
+        const categorySelect = document.getElementById('product-category');
+        const customCategoryInput = document.getElementById('custom-category');
+        categorySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'other') {
+                customCategoryInput.style.display = 'block';
+                customCategoryInput.required = true;
+            } else {
+                customCategoryInput.style.display = 'none';
+                customCategoryInput.required = false;
+            }
+        });
+
+        // Dynamic Toggle Handlers
+        const hasMultipleImages = document.getElementById('has-multiple-images');
+        const singleImageGroup = document.getElementById('single-image-group');
+        const multipleImagesGroup = document.getElementById('multiple-images-group');
+        const productImage = document.getElementById('product-image');
+        const productImages = document.getElementById('product-images');
+
+        hasMultipleImages.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                singleImageGroup.style.display = 'none';
+                multipleImagesGroup.style.display = 'block';
+                productImage.removeAttribute('required');
+                productImages.setAttribute('required', 'required');
+            } else {
+                singleImageGroup.style.display = 'block';
+                multipleImagesGroup.style.display = 'none';
+                productImage.setAttribute('required', 'required');
+                productImages.removeAttribute('required');
+            }
+        });
+
+        const hasColors = document.getElementById('has-colors');
+        const colorsGroup = document.getElementById('colors-group');
+        const productColors = document.getElementById('product-colors');
+
+        hasColors.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                colorsGroup.style.display = 'block';
+                productColors.setAttribute('required', 'required');
+            } else {
+                colorsGroup.style.display = 'none';
+                productColors.removeAttribute('required');
+            }
+        });
+
+        const hasSizes = document.getElementById('has-sizes');
+        const sizesGroup = document.getElementById('sizes-group');
+        const productSizes = document.getElementById('product-sizes');
+
+        hasSizes.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                sizesGroup.style.display = 'block';
+                productSizes.setAttribute('required', 'required');
+            } else {
+                sizesGroup.style.display = 'none';
+                productSizes.removeAttribute('required');
+            }
+        });
+
+        // Gallery Selector logic
+        document.querySelectorAll('.btn-select-existing').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                imageSelectionTarget = e.target.closest('button').dataset.target;
+                const modal = document.getElementById('image-selector-modal');
+                const grid = document.getElementById('existing-images-grid');
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading images...</p>';
+                modal.style.display = 'flex';
+                selectedGalleryImages = [];
+
+                try {
+                    // Fetch images from GitHub metadata file
+                    const getGithubImagesData = httpsCallable(functions, 'getGithubImagesData');
+                    const response = await getGithubImagesData();
+                    const imagesData = response.data || [];
+
+                    grid.innerHTML = '';
+                    const filteredImages = imagesData.filter(item => item.shopId === currentShopId);
+                    
+                    if (filteredImages.length === 0) {
+                        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #94a3b8;">No existing images found for your shop yet.</p>';
+                        return;
+                    }
+
+                    // Reverse to show newest first
+                    filteredImages.reverse().forEach(item => {
+                        const url = item.url;
+                        const imgContainer = document.createElement('div');
+                        imgContainer.style.cssText = 'position: relative; cursor: pointer; border: 3px solid transparent; border-radius: 8px; overflow: hidden; height: 140px; transition: 0.2s; background: var(--input-bg);';
+                        imgContainer.title = `Shop: ${item.shopId}\nSize: ${(item.size / 1024).toFixed(2)} KB`;
+                        
+                        const img = document.createElement('img');
+                        img.src = item.url;
+                        img.style.cssText = 'width: 100%; height: 100px; object-fit: cover;';
+                        
+                        const infoDiv = document.createElement('div');
+                        infoDiv.style.cssText = 'padding: 4px; font-size: 0.65rem; color: var(--text-color); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+                        infoDiv.innerText = `${(item.size / 1024).toFixed(1)} KB`;
+                        
+                        imgContainer.appendChild(img);
+                        imgContainer.appendChild(infoDiv);
+                        
+                        imgContainer.addEventListener('click', () => {
+                            if (imageSelectionTarget === 'single') {
+                                grid.querySelectorAll('div').forEach(div => div.style.borderColor = 'transparent');
+                                selectedGalleryImages = [url];
+                                imgContainer.style.borderColor = '#818cf8';
+                            } else {
+                                const index = selectedGalleryImages.indexOf(url);
+                                if (index > -1) {
+                                    selectedGalleryImages.splice(index, 1);
+                                    imgContainer.style.borderColor = 'transparent';
+                                } else {
+                                    selectedGalleryImages.push(url);
+                                    imgContainer.style.borderColor = '#818cf8';
+                                }
+                            }
+                        });
+                        
+                        grid.appendChild(imgContainer);
+                    });
+
+                } catch (error) {
+                    console.error("Error loading existing images:", error);
+                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ef4444;">Failed to load images.</p>';
+                }
+            });
+        });
+
+        document.getElementById('close-image-selector').addEventListener('click', () => {
+            document.getElementById('image-selector-modal').style.display = 'none';
+        });
+
+        // Image Selection & Validation
+        document.getElementById('product-image').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 1073741824) { // 1 GB limit
+                    showAnimation('alert', "File size exceeds 1 GB limit.", false);
+                    this.value = '';
+                    return;
+                }
+                document.getElementById('file-name').innerText = file.name;
+                
+                // Reset gallery state
+                existingImageUrl = null;
+                existingImageUrls = [];
+                
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = document.getElementById('image-preview');
+                    img.src = event.target.result;
+                    img.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('file-name').innerText = "Click to upload image (Max 1GB)";
+                document.getElementById('image-preview').style.display = 'none';
+            }
+        });
+
+        document.getElementById('product-images').addEventListener('change', function (e) {
+            const files = e.target.files;
+            const previewContainer = document.getElementById('images-preview');
+            previewContainer.innerHTML = '';
+            if (files.length > 0) {
+                document.getElementById('files-name').innerText = `${files.length} file(s) selected`;
+                
+                // Reset gallery state
+                existingImageUrl = null;
+                existingImageUrls = [];
+                
+                Array.from(files).forEach(file => {
+                    if (file.size > 1073741824) { // 1 GB limit
+                        showAnimation('alert', `File ${file.name} size exceeds 1 GB limit.`, false);
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.maxWidth = '100px';
+                        img.style.maxHeight = '100px';
+                        img.style.borderRadius = '8px';
+                        img.style.objectFit = 'contain';
+                        previewContainer.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                document.getElementById('files-name').innerText = "Click to upload multiple images";
+            }
+        });
+
+        document.getElementById('confirm-image-selection').addEventListener('click', () => {
+            if (selectedGalleryImages.length === 0) {
+                showAnimation('alert', 'Please select at least one image.', false);
+                return;
+            }
+
+            if (imageSelectionTarget === 'single') {
+                existingImageUrl = selectedGalleryImages[0];
+                existingImageUrls = [existingImageUrl];
+                document.getElementById('product-image').removeAttribute('required');
+                const preview = document.getElementById('image-preview');
+                preview.src = existingImageUrl;
+                preview.style.display = 'block';
+                document.getElementById('file-name').innerText = "Selected from gallery";
+            } else {
+                existingImageUrls = [...selectedGalleryImages];
+                existingImageUrl = existingImageUrls[0];
+                document.getElementById('product-images').removeAttribute('required');
+                const previewContainer = document.getElementById('images-preview');
+                previewContainer.innerHTML = '';
+                existingImageUrls.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.style.maxWidth = '100px';
+                    img.style.maxHeight = '100px';
+                    img.style.borderRadius = '8px';
+                    img.style.objectFit = 'contain';
+                    previewContainer.appendChild(img);
+                });
+                document.getElementById('files-name').innerText = `${existingImageUrls.length} file(s) selected from gallery`;
+            }
+            document.getElementById('image-selector-modal').style.display = 'none';
+        });
+
+        // --- IndexedDB Setup ---
+        const dbName = 'barodashop-db';
+        const dbVersion = 1;
+
+        async function openDB() {
+            return idb.openDB(dbName, dbVersion, {
+                upgrade(db) {
+                    if (!db.objectStoreNames.contains('products')) {
+                        db.createObjectStore('products', { keyPath: 'id' });
+                    }
+                },
+            });
+        }
+        
+        function showAnimation(type, message, autoClose = true, redirectUrl = null) {
+            const overlay = document.getElementById('animation-overlay');
+            const container = document.getElementById('lottie-container');
+            const msgElement = document.getElementById('animation-message');
+            const closeBtn = document.getElementById('animation-close-btn');
+            
+            overlay.style.display = 'flex';
+            msgElement.innerText = message;
+            container.innerHTML = '';
+            closeBtn.style.display = autoClose ? 'none' : 'block';
+
+            let animationFile = type === 'success' ? 'template/animation/success.json' 
+                              : type === 'error' ? 'template/animation/error.json' 
+                              : 'template/animation/alert.json';
+
+            lottie.loadAnimation({
+                container: container,
+                renderer: 'svg',
+                loop: type !== 'success',
+                autoplay: true,
+                path: animationFile
+            });
+
+            const handleClose = () => {
+                overlay.style.display = 'none';
+                if (redirectUrl) window.location.href = redirectUrl;
+            };
+
+            if (autoClose) setTimeout(handleClose, 2500);
+            else closeBtn.onclick = handleClose;
+        }
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (isError) toast.style.borderLeftColor = '#ef4444';
+            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}" style="color: ${isError ? '#ef4444' : '#10b981'}"></i> ${message}`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // --- Image Compression & GitHub Upload Logic ---
+        async function compressAndUploadImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const img = new Image();
+                    img.onload = async function () {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+
+                        // Compress to WebP
+                        const dataUrl = canvas.toDataURL('image/webp', 0.8);
+                        const base64Data = dataUrl.split(',')[1];
+                        const sizeBytes = Math.round(base64Data.length * 0.75); // Calculate approximate file size in bytes
+
+                        try {
+                            const filename = `product_${Date.now()}_${Math.floor(Math.random() * 1000)}.webp`;
+                            const uploadImageToGithub = httpsCallable(functions, 'uploadImageToGithub');
+                            
+                            const response = await uploadImageToGithub({ 
+                                base64Data, 
+                                filename,
+                                shopId: currentShopId,
+                                sizeBytes: sizeBytes
+                            });
+                            resolve(response.data.downloadUrl);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function loadProductForEdit(productId) {
+            pageHeader.innerText = 'Edit Product';
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Product';
+
+            try {
+                const productRef = doc(db, 'products', productId);
+                const productSnap = await getDoc(productRef);
+
+                if (productSnap.exists()) {
+                    const product = productSnap.data();
+                    document.getElementById('product-name').value = product.name;
+                    document.getElementById('product-brand').value = product.brand;
+
+                    const catOptions = Array.from(document.getElementById('product-category').options).map(o => o.value);
+                    if (catOptions.includes(product.category)) {
+                        document.getElementById('product-category').value = product.category;
+                    } else {
+                        document.getElementById('product-category').value = 'other';
+                        document.getElementById('custom-category').style.display = 'block';
+                        document.getElementById('custom-category').required = true;
+                        document.getElementById('custom-category').value = product.category;
+                    }
+
+                    document.getElementById('product-barcode').value = product.barcode;
+                    document.getElementById('product-tag').value = product.searchTags.join(', ');
+                    document.getElementById('product-rating').value = product.rating || 0;
+
+                    document.getElementById('product-image').removeAttribute('required');
+                    
+                    if (product.imageUrls && product.imageUrls.length > 0) {
+                        existingImageUrls = product.imageUrls;
+                        existingImageUrl = product.imageUrls[0];
+                        document.getElementById('has-multiple-images').checked = true;
+                        document.getElementById('has-multiple-images').dispatchEvent(new Event('change'));
+                        document.getElementById('product-images').removeAttribute('required');
+                        
+                        const previewContainer = document.getElementById('images-preview');
+                        previewContainer.innerHTML = '';
+                        product.imageUrls.forEach(url => {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.style.maxWidth = '100px';
+                            img.style.maxHeight = '100px';
+                            img.style.borderRadius = '8px';
+                            img.style.objectFit = 'contain';
+                            previewContainer.appendChild(img);
+                        });
+                        document.getElementById('files-name').innerText = "Keep current images or select new ones";
+                    } else if (product.imageUrl) {
+                        existingImageUrl = product.imageUrl;
+                        existingImageUrls = [product.imageUrl];
+                        document.getElementById('image-preview').src = product.imageUrl;
+                        document.getElementById('image-preview').style.display = 'block';
+                        document.getElementById('file-name').innerText = "Keep current image or select new";
+                    }
+
+                    if (product.colors && product.colors.length > 0) {
+                        document.getElementById('has-colors').checked = true;
+                        document.getElementById('has-colors').dispatchEvent(new Event('change'));
+                        document.getElementById('product-colors').value = product.colors.join(', ');
+                    }
+                    
+                    if (product.sizes && product.sizes.length > 0) {
+                        document.getElementById('has-sizes').checked = true;
+                        document.getElementById('has-sizes').dispatchEvent(new Event('change'));
+                        document.getElementById('product-sizes').value = product.sizes.join(', ');
+                    }
+
+                    document.getElementById('product-alert').value = product.alertStock;
+                    document.getElementById('buy-price').value = product.buyPrice;
+                    document.getElementById('sell-price').value = product.sellPrice;
+                    document.getElementById('product-desc').value = product.description;
+                } else {
+                    showAnimation('error', "Product not found. Redirecting...", true, 'all-product.html');
+                }
+            } catch (error) {
+                console.error("Error loading product for edit:", error);
+                showAnimation('error', "Failed to load product data. Redirecting...", true, 'all-product.html');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
+
+            try {
+                const barcode = document.getElementById('product-barcode').value;
+
+                // --- Barcode Uniqueness Check ---
+                const q = query(collection(db, 'products'), where("barcode", "==", barcode), where("shopId", "==", currentShopId));
+                const barcodeSnap = await getDocs(q);
+
+                if (!barcodeSnap.empty) {
+                    const isSameProduct = isEditMode && barcodeSnap.docs.some(d => d.id === editProductId);
+                    if (!isSameProduct) {
+                        showAnimation('alert', "A product with this barcode already exists in your shop.", false);
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = isEditMode ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Save Product';
+                        return;
+                    }
+                }
+
+                const isMultipleImages = document.getElementById('has-multiple-images').checked;
+                const imageFile = document.getElementById('product-image').files[0];
+                const imageFiles = isMultipleImages ? Array.from(document.getElementById('product-images').files) : [];
+
+                let finalCategory = document.getElementById('product-category').value;
+                if (finalCategory === 'other') {
+                    finalCategory = document.getElementById('custom-category').value.trim();
+                }
+
+                const productData = {
+                    name: document.getElementById('product-name').value,
+                    brand: document.getElementById('product-brand').value,
+                    rating: parseFloat(document.getElementById('product-rating').value),
+                    category: finalCategory,
+                    barcode: barcode,
+                    searchTags: document.getElementById('product-tag').value.split(',').map(tag => tag.trim()).filter(Boolean),
+                    alertStock: parseInt(document.getElementById('product-alert').value, 10),
+                    buyPrice: parseFloat(document.getElementById('buy-price').value),
+                    sellPrice: parseFloat(document.getElementById('sell-price').value),
+                    description: document.getElementById('product-desc').value,
+                    shopId: currentShopId // Stamping product with origin shop code
+                };
+                
+                if (isMultipleImages && imageFiles.length === 0 && existingImageUrls.length > 0) {
+                    productData.imageUrl = existingImageUrl;
+                    productData.imageUrls = existingImageUrls;
+                } else if (!isMultipleImages && !imageFile && existingImageUrl) {
+                    productData.imageUrl = existingImageUrl;
+                    productData.imageUrls = existingImageUrls;
+                }
+                
+                if (document.getElementById('has-colors').checked) {
+                    productData.colors = document.getElementById('product-colors').value.split(',').map(color => color.trim()).filter(Boolean);
+                } else {
+                    productData.colors = [];
+                }
+                
+                if (document.getElementById('has-sizes').checked) {
+                    productData.sizes = document.getElementById('product-sizes').value.split(',').map(size => size.trim()).filter(Boolean);
+                } else {
+                    productData.sizes = [];
+                }
+
+                const tempId = isEditMode ? editProductId : barcode;
+                productData.id = tempId;
+                productData.syncStatus = 'pending'; // Mark as pending
+
+                if (!isEditMode) {
+                    productData.stock = 0;
+                    productData.totalSale = 0;
+                    productData.totalPurchase = 0;
+                    productData.totalSellReturn = 0;
+                    productData.createdAt = new Date().toISOString();
+                }
+
+                // Save optimistically to local IndexedDB
+                const localDb = await openDB();
+                if (isMultipleImages && imageFiles.length > 0) {
+                    productData.imageBlobs = imageFiles;
+                } else if (!isMultipleImages && imageFile) {
+                    productData.imageBlob = imageFile;
+                } else if (isEditMode) {
+                    const existingLocal = await localDb.get('products', editProductId);
+                    if (existingLocal && existingLocal.imageBlob) productData.imageBlob = existingLocal.imageBlob;
+                    if (existingLocal && existingLocal.imageBlobs) productData.imageBlobs = existingLocal.imageBlobs;
+                    if (existingLocal && existingLocal.imageUrl) productData.imageUrl = existingLocal.imageUrl;
+                    if (existingLocal && existingLocal.imageUrls) productData.imageUrls = existingLocal.imageUrls;
+                }
+
+                await localDb.put('products', productData);
+
+                // Reset UI & Show Toast immediately (optimistic update)
+                if (isEditMode) {
+                    showAnimation('success', "Product updated successfully! Uploading in the background...", true, 'all-product.html');
+                } else {
+                    showAnimation('success', "Product added successfully! Uploading in the background...", true);
+                    form.reset();
+                    document.getElementById('file-name').innerText = "Click to upload image (Max 1GB)";
+                    document.getElementById('image-preview').style.display = 'none';
+                    document.getElementById('files-name').innerText = "Click to upload multiple images";
+                    document.getElementById('images-preview').innerHTML = '';
+                    document.getElementById('undo-ai-btn').style.display = 'none';
+                }
+
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = isEditMode ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Save Product';
+
+                // --- Background Upload Process ---
+                performBackgroundUpload(tempId, productData, imageFile, imageFiles, currentShopId, isEditMode, editProductId);
+
+            } catch (error) {
+                console.error("Error saving product: ", error);
+                showAnimation('error', "Failed to save product. Please try again.", false);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = isEditMode ? '<i class="fas fa-save"></i> Update Product' : '<i class="fas fa-save"></i> Save Product';
+            }
+        });
+
+        async function performBackgroundUpload(tempId, data, file, files, shopId, editMode, editId) {
+            activeUploads++;
+            try {
+                if (files && files.length > 0) {
+                    const uploadPromises = files.map(f => compressAndUploadImage(f));
+                    data.imageUrls = await Promise.all(uploadPromises);
+                    data.imageUrl = data.imageUrls[0]; // Set first as main
+                } else if (file) {
+                    const imageUrl = await compressAndUploadImage(file);
+                    data.imageUrl = imageUrl;
+                    data.imageUrls = [imageUrl];
+                }
+
+                const firestoreData = { ...data };
+                delete firestoreData.id;
+                delete firestoreData.syncStatus;
+                delete firestoreData.imageBlob;
+                delete firestoreData.imageBlobs;
+
+                let finalId = editId;
+                if (editMode) {
+                    await updateDoc(doc(db, 'products', editId), firestoreData);
+                } else {
+                    finalId = firestoreData.barcode;
+                    await setDoc(doc(db, 'products', finalId), firestoreData);
+                    await updateDoc(doc(db, 'shops', shopId), { totalProduct: increment(1) });
+                }
+
+                // Update IDB with final synced data
+                const localDb = await openDB();
+                if (!editMode && tempId !== finalId) await localDb.delete('products', tempId);
+
+                firestoreData.id = finalId;
+                firestoreData.syncStatus = 'synced';
+                if (file) firestoreData.imageBlob = file;
+                else if (data.imageBlob) firestoreData.imageBlob = data.imageBlob;
+                if (files && files.length > 0) firestoreData.imageBlobs = files;
+                else if (data.imageBlobs) firestoreData.imageBlobs = data.imageBlobs;
+
+                await localDb.put('products', firestoreData);
+                showToast(`Background upload finished for: ${data.name}`);
+            } catch (error) {
+                console.error("Background upload failed: ", error);
+                showToast(`Upload failed for ${data.name}. Will try again later.`, true);
+                const localDb = await openDB();
+                data.syncStatus = 'failed';
+                await localDb.put('products', data);
+            } finally {
+                activeUploads--;
+            }
+        }
+
+        // Lazy-load AI Engine
+        let aiEngineState = 'unloaded';
+
+        function loadPyScriptEngine(triggerBtnId, pyCallback) {
+            if (aiEngineState === 'ready') return;
+            if (aiEngineState === 'loading') return;
+
+            aiEngineState = 'loading';
+
+            const btn = document.getElementById(triggerBtnId);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booting AI...';
+
+            // Add py-click so PyScript wires it up for FUTURE clicks
+            document.getElementById('ai-enhance-btn').setAttribute('py-click', 'handle_ai_enhance');
+            document.getElementById('ai-vision-btn').setAttribute('py-click', 'handle_vision_ai');
+            document.getElementById('undo-ai-btn').setAttribute('py-click', 'undo_ai_enhance');
+
+            // Load CSS
+            const css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://pyscript.net/releases/2023.11.1/core.css';
+            document.head.appendChild(css);
+
+            // Load JS
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'https://pyscript.net/releases/2023.11.1/core.js';
+            document.head.appendChild(script);
+
+            // Load the main Python file
+            const pyScript = document.createElement('script');
+            pyScript.type = 'py';
+            pyScript.src = 'template/ai/add-product-ai.py';
+            document.body.appendChild(pyScript);
+
+            // Add inline script to run the enhancement once loading is complete
+            const pyExec = document.createElement('script');
+            pyExec.type = 'py';
+            pyExec.textContent = `
+import js
+import asyncio
+
+async def init_ai():
+    try:
+        await ${pyCallback}(None)
+    finally:
+        js.markAIEngineReady()
+
+asyncio.ensure_future(init_ai())
+            `;
+            document.body.appendChild(pyExec);
+        }
+
+        document.getElementById('ai-enhance-btn').addEventListener('click', function (e) {
+            if (aiEngineState === 'unloaded') loadPyScriptEngine('ai-enhance-btn', 'handle_ai_enhance');
+        });
+
+        document.getElementById('ai-vision-btn').addEventListener('click', function (e) {
+            if (aiEngineState === 'unloaded') loadPyScriptEngine('ai-vision-btn', 'handle_vision_ai');
+        });
+
+        window.markAIEngineReady = function () {
+            aiEngineState = 'ready';
+        };
+    </script>
+</body>
+
+</html>
